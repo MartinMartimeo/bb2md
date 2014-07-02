@@ -15,6 +15,7 @@ class BaseNode(object):
     ignore_whitespace = None
     disallow_text = None
     strip_before = None
+    full_match = None
 
     def __init__(self, arg: str):
         self._parent = None
@@ -63,19 +64,24 @@ class BaseNode(object):
 
     @classmethod
     def matches(cls, text: str):
-        return text.startswith(cls.tag)
+        if cls.full_match:
+            return cls.tag == text.strip()
+        else:
+            return text.startswith(cls.tag)
 
     def markdown(self):
         rtn = ""
         for child in self._children:
             if isinstance(child, str):
-                rtn += child.replace("*", "\\*").replace("_", "\\_")
+                child = child.replace("*", "\\*").replace("_", "\\_").replace("·", "*")
+                child = child.replace("\r\n", "\n").replace("\r", "\n")
+                child = child.replace('\x94', '').replace('\xa0', '')
+                rtn += child
             else:
                 if child.strip_before:
                     rtn = rtn.rstrip()
                 rtn += child.markdown()
         return rtn
-
 
 
 class RootNode(BaseNode):
@@ -86,6 +92,21 @@ class FontNode(BaseNode):
     tag = "font"
 
 
+class LinkNode(BaseNode):
+    tag = "url"
+
+    @property
+    def url(self):
+        if len(self._args) >= 1:
+            return self._args[0]
+
+    def markdown(self):
+        if not self.url:
+            return "[%s]" % super().markdown()
+        else:
+            return "[%s](%s)" % (super().markdown(), self.url)
+
+
 class ColorNode(BaseNode):
     tag = "color"
 
@@ -94,8 +115,21 @@ class FontSizeNode(BaseNode):
     tag = "size"
 
 
+class BlockNode(BaseNode):
+    tag = "block"
+
+    def markdown(self):
+        return "\n\n" + super().markdown() + "\n\n"
+
+
+class UnderlineNode(BaseNode):
+    tag = "u"
+    full_match = True
+
+
 class BoldNode(BaseNode):
     tag = "b"
+    full_match = True
 
     def markdown(self):
         return "**" + super().markdown() + "**"
@@ -187,8 +221,8 @@ class TableNode(BaseNode):
             icol = 0
             for itd, td in enumerate(tr._children):
                 nm[itr, icol] = td.markdown().split("\n")
-                widths[icol] = max(widths[icol], max(len(line) for line in nm[itr, icol]))
-                heights[itr] = max(heights[itr], len(nm[itr, icol]))
+                widths[icol] = max(widths[icol], max(len(line) for line in nm[itr, icol]), 1)
+                heights[itr] = max(heights[itr], len(nm[itr, icol]), 1)
                 if td.rowspan > 1:
                     raise TypeError("Multirow table cells are not supported in markdown")
                 icol += td.colspan

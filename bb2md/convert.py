@@ -14,7 +14,8 @@ logging = logging.getLogger("bb2md")
 
 
 class Bb2MdConverter(object):
-    types = {ListNode, LiNode, TableNode, TrNode, TdNode, FontNode, FontSizeNode, BoldNode, ItalicNode, ColorNode}
+    types = {ListNode, LiNode, BlockNode, LinkNode, TableNode, TrNode, TdNode, FontNode, FontSizeNode, BoldNode,
+             ItalicNode, ColorNode, UnderlineNode}
 
     def __init__(self):
         pass
