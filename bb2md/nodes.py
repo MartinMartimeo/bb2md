@@ -4,7 +4,6 @@
 
 """
 from collections import defaultdict
-import logging
 
 __author__ = 'Martin Martimeo <martin@martimeo.de>'
 __date__ = '02.07.14 - 17:04'
@@ -171,9 +170,11 @@ class ListNode(BaseNode):
                 rtn += child.markdown()
             elif isinstance(child, ListNode):
                 rtn = rtn.rstrip()
-                for line in child.markdown().split("\n"):
+                rtn_child = child.markdown()
+                while rtn_child.startswith("\n\n"):
+                    rtn_child = rtn_child[1:]
+                for line in rtn_child.split("\n"):
                     rtn += "    " + line + "\n"
-
             else:
                 raise TypeError("Unknown child in list element: %s" % type(child))
         rtn = rtn.rstrip() + "\n\n"
