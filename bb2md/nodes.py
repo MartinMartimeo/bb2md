@@ -72,9 +72,15 @@ class BaseNode(object):
         rtn = ""
         for child in self._children:
             if isinstance(child, str):
+                # Escape markdown control sequences
                 child = child.replace("*", "\\*").replace("_", "\\_").replace("·", "*")
+
+                # Fold windows line endings together
                 child = child.replace("\r\n", "\n").replace("\r", "\n")
+
+                # Remove Magic characters
                 child = child.replace('\x94', '').replace('\xa0', '')
+
                 rtn += child
             else:
                 if child.strip_before:
