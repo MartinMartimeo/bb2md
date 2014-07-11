@@ -234,25 +234,37 @@ class TableNode(BaseNode):
         else:
             return None
 
-
     def markdown(self):
 
         # Convert all elements
         nm = {}
         widths = defaultdict(int)
+        user_widths = defaultdict(int)
+
         heights = defaultdict(int)
         for itr, tr in enumerate(self._children):
             icol = 0
             for itd, td in enumerate(tr._children):
                 nm[itr, icol] = td.markdown().split("\n")
+
+                # Calc widths based on input
                 widths[icol] = max(widths[icol], max(len(line) for line in nm[itr, icol]), 1)
                 heights[itr] = max(heights[itr], len(nm[itr, icol]), 1)
                 if td.rowspan > 1:
                     raise TypeError("Multirow table cells are not supported in markdown")
+
+                # Now additional the width the user told us
+                user_widths[icol] = max(user_widths[icol], td.width, 1)
+
                 icol += td.colspan
 
+        # Scale user_widths down
+        user_widths = {icol: int(width / 10) or 1 for icol, width in user_widths.items()}
+        user_factor = max(ceil(width / user_widths[icol]) for icol, width in widths.items())
+        widths = {icol: int(width * user_factor) for icol, width in user_widths.items()}
+
         # Print them
-        rtn = ""
+        rtn = "\n\n"
 
         # Print first line
         def print_separation():
@@ -279,6 +291,8 @@ class TableNode(BaseNode):
                     rtn += "|"
                 rtn += "\n"
             rtn += print_separation()
+
+        rtn += "\n\n"
         return rtn
 
 
@@ -302,5 +316,12 @@ class TdNode(BaseNode):
     def rowspan(self):
         if len(self._args) >= 4:
             return int(self._args[3]) or 1
+        else:
+            return 1
+
+    @property
+    def width(self):
+        if len(self._args) >= 1:
+            return float(self._args[0].rstrip("pxcm%")) or 1
         else:
             return 1
