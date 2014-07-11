@@ -17,6 +17,9 @@ class Bb2MdConverter(object):
     types = {ListNode, LiNode, BlockNode, LinkNode, TableNode, TrNode, TdNode, FontNode, FontSizeNode, BoldNode,
              ItalicNode, ColorNode, UnderlineNode}
 
+    #!: Soft Fail on bbcode tags, something like [Ministerpräsident] won't fail if this is true
+    soft_failing = True
+
     def __init__(self):
         pass
 
@@ -69,7 +72,11 @@ class Bb2MdConverter(object):
                         node = node.append(cls(arg))
                         break
                 else:
-                    raise TypeError("Could not find handling for %s" % arg)
+                    if self.soft_failing:
+                        logging.debug("Strange bbcode tag: %s" % arg)
+                        node.append("[%s]" % arg)
+                    else:
+                        raise TypeError("Could not find handling for %s" % arg)
 
         node.close("")
         return node.markdown()
