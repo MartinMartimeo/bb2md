@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- encoding: utf-8 -*-
 """
 
@@ -7,10 +7,10 @@
 __author__ = 'Martin Martimeo <martin@martimeo.de>'
 __date__ = '02.07.14 - 16:52'
 
-from .nodes import *
-
 import logging
 logging = logging.getLogger("bb2md")
+
+from .nodes import *
 
 
 class Bb2MdConverter(object):

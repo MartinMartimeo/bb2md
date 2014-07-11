@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# !/usr/bin/python
 # -*- encoding: utf-8 -*-
 """
 
@@ -280,6 +280,7 @@ class TableNode(BaseNode):
                 rtn += "\n"
             rtn += print_separation()
         return rtn
+
 
 class TrNode(BaseNode):
     tag = "tr"
