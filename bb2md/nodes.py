@@ -4,6 +4,7 @@
 
 """
 from collections import defaultdict
+import re
 
 __author__ = 'Martin Martimeo <martin@martimeo.de>'
 __date__ = '02.07.14 - 17:04'
@@ -73,13 +74,17 @@ class BaseNode(object):
         for child in self._children:
             if isinstance(child, str):
                 # Escape markdown control sequences
-                child = child.replace("*", "\\*").replace("_", "\\_").replace("·", "*")
+                child = child.replace("*", "\\*").replace("_", "\\_").replace("·", "*").replace("-", "\-")
 
                 # Fold windows line endings together
                 child = child.replace("\r\n", "\n").replace("\r", "\n")
 
                 # Remove Magic characters
                 child = child.replace('\x94', '').replace('\xa0', '')
+
+                # Challenge linebreaks
+                child = re.sub(r"[\n]+", "\n", child)
+                child = child.replace("\n", "\n\n")
 
                 rtn += child
             else:
@@ -137,14 +142,26 @@ class BoldNode(BaseNode):
     full_match = True
 
     def markdown(self):
-        return "**" + super().markdown() + "**"
+        rtn = ""
+        for line in super().markdown().split("\n"):
+            if line:
+                rtn += "**" + line + "**\n"
+            else:
+                rtn += "\n"
+        return rtn
 
 
 class ItalicNode(BaseNode):
     tag = "i"
 
     def markdown(self):
-        return "_" + super().markdown() + "_"
+        rtn = ""
+        for line in super().markdown().split("\n"):
+            if line:
+                rtn += "_" + line + "_\n"
+            else:
+                rtn += "\n"
+        return rtn
 
 
 class ListNode(BaseNode):
